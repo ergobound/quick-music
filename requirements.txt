@@ -3,3 +3,6 @@ python-telegram-bot[callback-data]
 python-telegram-bot[job-queue]
 yt-dlp
 python-dotenv
+requests
+lxml_html_clean
+requests-html
