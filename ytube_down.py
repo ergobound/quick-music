@@ -1,6 +1,18 @@
 from yt_dlp import YoutubeDL # type: ignore 
 # pip install -U yt-dlp
 import re
+from ytmusicapi import YTMusic
+
+ytmusic = YTMusic()
+def get_track_url(song_name):
+    search_results = ytmusic.search(song_name, filter="songs")
+    print(search_results)
+    if search_results:
+        track = search_results[0]
+        video_id = track['videoId']
+        track_url = f"https://music.youtube.com/watch?v={video_id}"
+        return track_url
+    return "Трек не найден"
 
 def my_filter(info_dict):
     # Прямая манипуляция данными перед созданием файла

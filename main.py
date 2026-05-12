@@ -87,7 +87,8 @@ def restricted(func):
 @restricted
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text = (
-        "Добро пожаловать!\n"
+        "Добро пожаловать!\n" \
+        "Отправьте название песни или ссылку."
         "Пример принимаемых ссылок.\n"
         "YOUTUBE\n"
         "Скачивание первого попавшего в ссылке трека:\n"
@@ -152,6 +153,34 @@ async def youtube_link(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     shutil.rmtree(uniq_path)
 
 @restricted
+async def song_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    song = update.message.text
+    link = ytube_down.get_track_url(song_name=song)
+
+    uniq_time = str(time.time()).replace(".", "")
+    uniq_path = os.path.join(DOWNFOLDER, uniq_time)
+
+    if link:
+        ytube_down.download(url=link, path=uniq_path)
+        track = os.listdir(uniq_path)[0]
+
+        if len(track) > LENGHT:
+            name = track.replace(".mp3", "")[:LENGHT+1] + "...mp3"
+        else:
+            name = track
+
+        try:
+            await update.message.reply_audio(os.path.join(uniq_path, track), title=name) 
+            await sleep(1)
+        except:
+            print("ERROR DOWNLOAD")
+            
+    else:
+        await update.message.reply_text("Трек не найден.")
+
+    shutil.rmtree(uniq_path)
+
+@restricted
 async def bandcamp_link(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     link = update.message.text
     uniq_time = str(time.time()).replace(".", "")
@@ -186,6 +215,7 @@ def main() -> None:
     app.add_handler(CommandHandler('start', start))
     app.add_handler(MessageHandler(filters.Regex("(youtube.com/)"), youtube_link))
     app.add_handler(MessageHandler(filters.Regex("(bandcamp.com/)"), bandcamp_link))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, song_name))
     
     app.job_queue.run_once(set_commands, 0)
     app.run_polling(poll_interval=2.0,
