@@ -88,7 +88,7 @@ def restricted(func):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text = (
         "Добро пожаловать!\n" \
-        "Отправьте название песни или ссылку."
+        "Отправьте название песни или ссылку.\n"
         "Пример принимаемых ссылок.\n"
         "YOUTUBE\n"
         "Скачивание первого попавшего в ссылке трека:\n"
@@ -137,7 +137,7 @@ async def youtube_link(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     track_list = os.listdir(uniq_path)
     track_list = sorted(track_list, key=lambda t: os.path.getmtime(os.path.join(uniq_path, t)))
     if not track_list:
-        await update.message.reply_text("Не удалось найти песни.")
+        await update.message.reply_text("Не удалось найти.")
         return
     for track in track_list:
         if len(track) > LENGHT:

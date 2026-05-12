@@ -12,7 +12,7 @@ def get_track_url(song_name):
         video_id = track['videoId']
         track_url = f"https://music.youtube.com/watch?v={video_id}"
         return track_url
-    return "Трек не найден"
+    return None # "Трек не найден"
 
 def my_filter(info_dict):
     # Прямая манипуляция данными перед созданием файла
