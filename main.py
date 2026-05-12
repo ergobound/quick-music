@@ -88,7 +88,7 @@ def restricted(func):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text = (
         "Добро пожаловать!\n" \
-        "Отправьте название песни или ссылку.\n"
+        "Отправьте название песни или ссылку.\n\n"
         "Пример принимаемых ссылок.\n"
         "YOUTUBE\n"
         "Скачивание первого попавшего в ссылке трека:\n"
