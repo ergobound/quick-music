@@ -84,7 +84,7 @@ def restricted(func):
 
 
 # @detect_error
-@restricted
+# @restricted
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text = (
         "Добро пожаловать!\n" \
@@ -116,7 +116,7 @@ async def set_commands(context: ContextTypes.DEFAULT_TYPE):
 # async def identify_link(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 #     pass
 
-@restricted
+# @restricted
 async def youtube_link(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     message = update.message.text.split()
     link = message[0]
@@ -152,7 +152,7 @@ async def youtube_link(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
     shutil.rmtree(uniq_path)
 
-@restricted
+# @restricted
 async def song_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     song = update.message.text
     link = ytube_down.get_track_url(song_name=song)
@@ -180,7 +180,7 @@ async def song_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     shutil.rmtree(uniq_path)
 
-@restricted
+# @restricted
 async def bandcamp_link(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     link = update.message.text
     uniq_time = str(time.time()).replace(".", "")
