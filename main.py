@@ -40,6 +40,7 @@ DOWNFOLDER = "down-music"
 LENGHT = 61
 
 async def init(context: ContextTypes.DEFAULT_TYPE):
+    # запускается при старте бота
     if not os.path.exists("users.db"):
         connection = sqlite3.connect("users.db")
         cursor = connection.cursor()
