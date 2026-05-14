@@ -39,7 +39,7 @@ DEVELOPER = os.getenv("DEVELOPER")
 DOWNFOLDER = "down-music"
 LENGHT = 61
 
-def init():
+async def init(context: ContextTypes.DEFAULT_TYPE):
     if not os.path.exists("users.db"):
         connection = sqlite3.connect("users.db")
         cursor = connection.cursor()
@@ -101,7 +101,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     connection = sqlite3.connect("users.db")
     cursor = connection.cursor()
-    cursor.execute("INSERT IGNORE INTO users (userid, username) VALUES (%s, '%s')" % (userid, username))
+    cursor.execute("INSERT OR IGNORE INTO users (userid, username) VALUES (%s, '%s')" % (userid, username))
     connection.commit()
 
     text = (
