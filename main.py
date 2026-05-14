@@ -10,6 +10,7 @@ from telegram.ext import (
 )
 from functools import wraps
 from asyncio import sleep
+import sqlite3
 import time
 import shutil
 import datetime as dt
@@ -86,6 +87,14 @@ def restricted(func):
 # @detect_error
 # @restricted
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    userid = update.effective_user.id
+    username = update.effective_user.username
+
+    connection = sqlite3.connect("users.db")
+    cursor = connection.cursor()
+    cursor.execute("INSERT IGNORE INTO users (userid, username) VALUES (%s, '%s')" % (userid, username))
+    connection.commit()
+
     text = (
         "Добро пожаловать!\n" \
         "Отправьте название песни или ссылку.\n\n"
