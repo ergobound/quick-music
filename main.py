@@ -39,6 +39,15 @@ DEVELOPER = os.getenv("DEVELOPER")
 DOWNFOLDER = "down-music"
 LENGHT = 61
 
+def init():
+    if not os.path.exists("users.db"):
+        connection = sqlite3.connect("users.db")
+        cursor = connection.cursor()
+        cursor.execute("""CREATE TABLE users
+                    (userid BIGINT NOT NULL,
+                    username VARCHAR(500),
+                    UNIQUE (userid)
+                    );""")
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     tb_list = traceback.format_exception(None, context.error, context.error.__traceback__)
@@ -218,7 +227,7 @@ async def bandcamp_link(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     # await update.message.reply_text("Некорректный ввод ссылки.")
 
 def main() -> None:
-    app = ApplicationBuilder().token(TOKEN).arbitrary_callback_data(True).build()
+    app = ApplicationBuilder().token(TOKEN).arbitrary_callback_data(True).post_init(init).build()
 
     app.add_error_handler(error_handler)
     app.add_handler(CommandHandler('start', start))

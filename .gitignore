@@ -5,4 +5,4 @@ down-music
 .env
 test.py
 quick-music-bot.service
-user.db
+users.db
