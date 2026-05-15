@@ -222,7 +222,10 @@ async def optimization_and_send(update: Update, context: ContextTypes.DEFAULT_TY
         size_mb = os.path.getsize(os.path.join(uniq_path, track)) / (1024 * 1024) # Размер в мб
         print('size_mb', size_mb)
         if size_mb > 50:
+            oldtrack = track
             track = compress_audio(uniq_path, track)
+            os.replace(oldtrack, "old-" + oldtrack)
+            os.replace(track, track.replace("compressed-", "", 1))
 
         try:
             print("Отправка")
