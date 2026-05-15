@@ -1,5 +1,6 @@
 from telegram import (
     Update,
+    error
 )
 from telegram.ext import (
     ApplicationBuilder,
@@ -15,6 +16,7 @@ import time
 import shutil
 import datetime as dt
 import json
+import subprocess
 import logging, sys, os
 import html
 import traceback
@@ -38,6 +40,25 @@ ADMINS = list(map(int, os.getenv("ADMINS", "").split(",")))
 DEVELOPER = os.getenv("DEVELOPER")
 DOWNFOLDER = "down-music"
 LENGHT = 61
+
+def compress_audio(uniq_path: str, file: str):
+    """Компрессия файла с помощью ffmpeg"""
+    out_file = "compressed-" + file
+
+    # Вызыв FFmpeg прямо из Python
+    cmd = [
+        "ffmpeg", "-y",                  # -y разрешает перезапись файла, если он существует
+        "-i", os.path.join(uniq_path, file), 
+        "-b:a", "64k",                   # Снижаем битрейт до 64kbps
+        "-ac", "1",                      # Переводим в моно для экономии места
+        os.path.join(uniq_path, out_file)# выходной файл
+    ]
+    
+    # Запуск процесса сжатия
+    result = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    print(result)
+
+    return out_file
 
 async def init(context: ContextTypes.DEFAULT_TYPE):
     # запускается при старте бота
@@ -153,23 +174,8 @@ async def youtube_link(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     
     ytube_down.download(url=link, playlist_items=items, path=uniq_path)
 
-    track_list = os.listdir(uniq_path)
-    track_list = sorted(track_list, key=lambda t: os.path.getmtime(os.path.join(uniq_path, t)))
-    if not track_list:
-        await update.message.reply_text("Не удалось найти.")
-        return
-    for track in track_list:
-        if len(track) > LENGHT:
-            name = track.replace(".mp3", "")[:LENGHT+1] + "...mp3"
-        else:
-            name = track
-        try:
-            await update.message.reply_audio(os.path.join(uniq_path, track), title=name) 
-            await sleep(1)
-        except:
-            print("ERROR DOWNLOAD")
+    await optimization_and_send(update, context, uniq_path)
 
-    shutil.rmtree(uniq_path)
 
 # @restricted
 async def song_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -181,23 +187,14 @@ async def song_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     if link:
         ytube_down.download(url=link, path=uniq_path)
-        track = os.listdir(uniq_path)[0]
 
-        if len(track) > LENGHT:
-            name = track.replace(".mp3", "")[:LENGHT+1] + "...mp3"
-        else:
-            name = track
+        track_list = os.listdir(uniq_path)
 
-        try:
-            await update.message.reply_audio(os.path.join(uniq_path, track), title=name) 
-            await sleep(1)
-        except:
-            print("ERROR DOWNLOAD")
+        await optimization_and_send(update, context, uniq_path)
             
     else:
         await update.message.reply_text("Трек не найден.")
 
-    shutil.rmtree(uniq_path)
 
 # @restricted
 async def bandcamp_link(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -206,7 +203,11 @@ async def bandcamp_link(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     uniq_path = os.path.join(DOWNFOLDER, uniq_time)
 
     bcamp_down.download(link=link, path=uniq_path)
+    
+    await optimization_and_send(update, context, uniq_path)
 
+async def optimization_and_send(update: Update, context: ContextTypes.DEFAULT_TYPE,
+                                                            uniq_path: str) -> None:
     track_list = os.listdir(uniq_path)
     track_list = sorted(track_list, key=lambda t: os.path.getmtime(os.path.join(uniq_path, t)))
     if not track_list:
@@ -217,15 +218,26 @@ async def bandcamp_link(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             name = track.replace(".mp3", "")[:LENGHT+1] + "...mp3"
         else:
             name = track
+
+        size_mb = os.path.getsize(os.path.join(uniq_path, track)) / (1024 * 1024) # Размер в мб
+        print('size_mb', size_mb)
+        if size_mb > 50:
+            track = compress_audio(uniq_path, track)
+
         try:
+            print("Отправка")
             await update.message.reply_audio(os.path.join(uniq_path, track), title=name) 
             await sleep(1)
-        except:
-            print("ERROR DOWNLOAD")
+        except error.NetworkError as err:
+            if "Request Entity Too Large" in str(err):
+                await update.message.reply_text("Невозможно загрузить. Файл слишком большой.")
+            else:
+                raise error.NetworkError(err)
+        
+        size_mb = os.path.getsize(os.path.join(uniq_path, track)) / (1024 * 1024) # Размер в мб
+        print('out size_mb', size_mb)
 
     shutil.rmtree(uniq_path)
-
-    # await update.message.reply_text("Некорректный ввод ссылки.")
 
 def main() -> None:
     app = ApplicationBuilder().token(TOKEN).arbitrary_callback_data(True).post_init(init).build()
@@ -237,9 +249,10 @@ def main() -> None:
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, song_name))
     
     app.job_queue.run_once(set_commands, 0)
-    app.run_polling(poll_interval=2.0,
-                    bootstrap_retries=5,
-                    allowed_updates=Update.ALL_TYPES)
+    app.run_polling()
+    # poll_interval=2.0,
+    # bootstrap_retries=5,
+    # allowed_updates=Update.ALL_TYPES
 
 if __name__ == "__main__":
     main()
