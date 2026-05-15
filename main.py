@@ -89,6 +89,7 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
         chat_id=DEVELOPER, text=message, parse_mode=ParseMode.HTML
     )
 
+
 def detect_error(func):
     @wraps(func)
     async def wrapped(update, context, *args, **kwargs):
@@ -222,10 +223,14 @@ async def optimization_and_send(update: Update, context: ContextTypes.DEFAULT_TY
         size_mb = os.path.getsize(os.path.join(uniq_path, track)) / (1024 * 1024) # Размер в мб
         print('size_mb', size_mb)
         if size_mb > 50:
-            oldtrack = track
-            track = compress_audio(uniq_path, track)
-            os.replace(oldtrack, "old-" + oldtrack)
-            os.replace(track, track.replace("compressed-", "", 1))
+            compressed_track = compress_audio(uniq_path, track)
+            if compressed_track:
+                os.remove(os.path.join(uniq_path, track))
+                os.replace(
+                    os.path.join(uniq_path, compressed_track),
+                    os.path.join(uniq_path, compressed_track.replace("compressed-", "", 1))
+                )
+
 
         try:
             print("Отправка")
@@ -235,7 +240,7 @@ async def optimization_and_send(update: Update, context: ContextTypes.DEFAULT_TY
             if "Request Entity Too Large" in str(err):
                 await update.message.reply_text("Невозможно загрузить. Файл слишком большой.")
             else:
-                raise error.NetworkError(err)
+                raise error.NetworkError(str(err))
         
         size_mb = os.path.getsize(os.path.join(uniq_path, track)) / (1024 * 1024) # Размер в мб
         print('out size_mb', size_mb)
