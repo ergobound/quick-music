@@ -39,7 +39,7 @@ TOKEN = os.getenv("TOKEN") # os.environ["TOKEN"]
 ADMINS = list(map(int, os.getenv("ADMINS", "").split(",")))
 DEVELOPER = os.getenv("DEVELOPER")
 DOWNFOLDER = "down-music"
-LENGHT = 61
+LENGHT = 65
 
 def compress_audio(uniq_path: str, file: str):
     """Компрессия файла с помощью ffmpeg"""
@@ -189,8 +189,6 @@ async def song_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if link:
         ytube_down.download(url=link, path=uniq_path)
 
-        track_list = os.listdir(uniq_path)
-
         await optimization_and_send(update, context, uniq_path)
             
     else:
@@ -215,8 +213,9 @@ async def optimization_and_send(update: Update, context: ContextTypes.DEFAULT_TY
         await update.message.reply_text("Не удалось найти песни.")
         return
     for track in track_list:
+        track = track.replace(".mp3", "")
         if len(track) > LENGHT:
-            name = track.replace(".mp3", "")[:LENGHT+1] + "...mp3"
+            name = track[:LENGHT-1] + ".."
         else:
             name = track
 
