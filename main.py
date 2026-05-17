@@ -41,6 +41,9 @@ DEVELOPER = os.getenv("DEVELOPER")
 DOWNFOLDER = "down-music"
 LENGHT = 65
 
+if os.path.exists(DOWNFOLDER):
+    shutil.rmtree(DOWNFOLDER)
+
 def compress_audio(uniq_path: str, file: str):
     """Компрессия файла с помощью ffmpeg"""
     out_file = "compressed-" + file
