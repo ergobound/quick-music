@@ -213,11 +213,9 @@ async def optimization_and_send(update: Update, context: ContextTypes.DEFAULT_TY
         await update.message.reply_text("Не удалось найти песни.")
         return
     for track in track_list:
-        track = track.replace(".mp3", "")
+        name = track.replace(".mp3", "")
         if len(track) > LENGHT:
-            name = track[:LENGHT-1] + ".."
-        else:
-            name = track
+            name = name[:LENGHT-1] + ".."
 
         size_mb = os.path.getsize(os.path.join(uniq_path, track)) / (1024 * 1024) # Размер в мб
         print('size_mb', size_mb)
